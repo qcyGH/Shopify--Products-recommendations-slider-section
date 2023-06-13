@@ -181,6 +181,7 @@ Settings:
 
 
 {% javascript %}
+
   (async () => {
   // Define an async function to handle the intersection of the observed element
   const handleIntersection = async (entries, observer) => {
@@ -212,15 +213,15 @@ Settings:
       });
   };
 
-  // Get a reference to the product recommendations section
-  const productRecommendationsSection = document.querySelector('.product-recommendations');
+    // Get a reference to the product recommendations section
+    const productRecommendationsSection = document.querySelector('.product-recommendations');
 
-  // Create an IntersectionObserver instance with a callback function and root margin
-  const observer = await new IntersectionObserver(handleIntersection, {rootMargin: '0px 0px 200px 0px'});
+    // Create an IntersectionObserver instance with a callback function and root margin
+    const observer = await new IntersectionObserver(handleIntersection, {rootMargin: '0px 0px 200px 0px'});
 
-  // Observe the product recommendations section for intersection
-  await observer.observe(productRecommendationsSection);
-})();
+    // Observe the product recommendations section for intersection
+    await observer.observe(productRecommendationsSection);
+  })();
 
 {% endjavascript %}
 
