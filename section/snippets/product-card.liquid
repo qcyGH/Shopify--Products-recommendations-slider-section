@@ -1,0 +1,78 @@
+<div class="swiper-slide">
+    <div class="slide__inner">
+      <div style="overflow: hidden;">
+        <a class="slide__image" style="display: block; overflow: hidden; border-radius: 10px 10px 0 0;" href="{{ product.url }}" target="_blank" rel="noopener noreferrer">
+          <img src="{{ product.featured_image | img_url: '480x' }}">
+          {%- if product.media[1] != nil and show_second_image -%}
+            <img class="slide__image_hover" src="{{ product.media[1] | img_url: '480x' }}">
+          {% endif %}
+          <div class="slide__image_favorite favorite">
+            <span class="icon__favorite_light favorite__button">{% render 'icon-favorite' %}</span>
+          </div>
+        </a>
+      </div>
+      <div class="slide__content">
+        <div class="slide__content_block">
+          <div class="card__title">
+            <a class="title__name" href="{{ product.url }}" target="_blank" rel="noopener noreferrer">
+              {{ product.title }}
+            </a>
+            {% if show_rating %}
+              <div class="card__rating">
+                <div class="card__rating_stars">
+                  <div class="active" style="--rating: 3.5" aria-label="Rating of this product is 3.5 out of 5">
+                    <div class="active__inner">
+                      <span class="icon__star_active">{% render 'icon-star-active' %}</span>
+                      <span class="icon__star_active">{% render 'icon-star-active' %}</span>
+                      <span class="icon__star_active">{% render 'icon-star-active' %}</span>
+                      <span class="icon__star_active">{% render 'icon-star-active' %}</span>
+                      <span class="icon__star_active">{% render 'icon-star-active' %}</span>
+                    </div>
+                  </div>
+                  <span class="icon__star">{% render 'icon-star' %}</span>
+                  <span class="icon__star">{% render 'icon-star' %}</span>
+                  <span class="icon__star">{% render 'icon-star' %}</span>
+                  <span class="icon__star">{% render 'icon-star' %}</span>
+                  <span class="icon__star">{% render 'icon-star' %}</span>
+                </div>
+                <small class="card__rating_reviews">8 reviews</small>
+              </div>
+            {% endif %}
+          </div>
+          <div class="card__buy">
+            <div class="card__content price">
+              {% if product.compare_at_price %}
+                <small>{{product.compare_at_price | money_without_trailing_zeros }}</small>
+              {% endif%}
+              {{product.price | money_without_trailing_zeros }}
+            </div>
+            <div class="card__content">
+              {% form 'product', product, id: product_form_id %}
+                <select class="form-select" name="id" style="display: none;">
+                  {% for variant in product.variants %}
+                  <option value="{{ variant.id }}"
+                      {% if variant == product.selected_or_first_available_variant %}selected="selected"{% endif %}
+                  >
+                      {{ variant.title }} - {{ variant.price | money }}
+                  </option>
+                  {% endfor %}
+                </select>
+
+                <quantity-input class="quantity" style="display: none;">
+                  <input class="quantity__input"
+                      type="number"
+                      name="quantity"
+                      value="1"
+                      >
+                  </quantity-input>
+
+                <button type="submit" class="btn buy__button">
+                  <span class="icon__cart">{% render 'icon-cart-homemaid' %}</span>
+                </button>
+              {% endform %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

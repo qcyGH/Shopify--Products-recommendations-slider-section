@@ -1,0 +1,422 @@
+{% comment %}
+
+This is product recommendation section with slider (Swiper.js).
+Its take products from Shopify API and then displays them in slider.
+
+Settings:
+
+- Label text
+
+/ Card settings /
+
+- Show secondary image while hover.
+- Show rating in card.
+
+/ Slider settings /
+
+- Max product range.
+- Transition animation.
+- Slider speed. (transition duration)
+- Enable slider autoplay
+- Slider autoplay delay
+
+{% endcomment %}
+
+<section
+ class="product-recommendations mt-5"
+ data-url="{{ routes.product_recommendations_url }}?section_id={{ section.id }}&product_id={{ product.id }}&limit=15"
+ >
+
+  {{ 'slider-horizontal.css' | asset_url | stylesheet_tag }}
+
+  <div class="container">
+    <div class="row justify-content-start">
+      <div class="col-lg-12 col-sm-12 col-md-12">
+        <div class="swiper__container">
+          <div class="swiper__title">
+            <h3 class="swiper__title_text">{{ section.settings.section_label }}</h3>
+            <div class="swiper__buttons_wraper">
+              <div class="swiper-button-prev swiper-button-prev__recommendation">
+                <span class="icon__arrow-prev arrow-shadow icon__arrow">{% render 'icon-arrow', arrow_prev: true %}</span>
+              </div>
+              <div class="swiper-button-next swiper-button-next__recommendation">
+                <span class="icon__arrow-next arrow-shadow icon__arrow"> {% render 'icon-arrow' %} </span>
+              </div>
+            </div>
+          </div>
+          <!--Slider main container -->
+          <div class="swiper swiper__recommendation">
+            <!-- Additional required wrapper -->
+            <div class="swiper-wrapper swiper-wrapper_recommendation">
+            <!-- Slides -->
+            {% for product in recommendations.products limit: section.settings.max_products_range %}
+              {% render 'product-card',
+               product: product,
+               show_second_image: section.settings.show_second_image,
+               show_rating: section.settings.show_card_rating
+               %}
+            {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener("load", () => {
+      document.querySelector('.swiper-wrapper_recommendation').style.transitionTimingFunction = '{{ section.settings.transition_timing_function }}'
+    });
+  </script>
+
+  {% if section.settings.slider_autoplay %}
+  <script>
+    window.addEventListener("load", () => {
+      const swiperRecommendationAutoplay = new Swiper(".swiper__recommendation", {
+        // Optional parameters
+        direction: "horizontal",
+        loop: false,
+        speed: parseInt('{{ section.settings.slider_speed }}'),
+        slidesPerView: 4,
+        loadOnTransitionStart: true,
+        autoHeight: true,
+
+        breakpoints: {
+          // when window width is >= 320px
+          320: {
+            slidesPerView: 1,
+          },
+          // when window width is >= 768px
+          768: {
+            slidesPerView: 2,
+          },
+          // when window width is >= 992px
+          992: {
+            slidesPerView: 3,
+          },
+          // when window width is >= 1200px
+          1200: {
+            slidesPerView: 4,
+          }
+        },
+
+        autoplay: {
+        delay: parseInt('{{ section.settings.slider_autoplay_delay }}'),
+        pauseOnMouseEnter: true,
+        disableOnInteraction: false
+        },
+
+        keyboard: {
+          enabled: true,
+        },
+
+        mousewheel: {
+          invert: false,
+        },
+
+
+        // Navigation arrows
+        navigation: {
+            nextEl: ".swiper-button-next__recommendation",
+            prevEl: ".swiper-button-prev__recommendation",
+        },
+
+      });
+    })
+  </script>
+  {% else %}
+  <script>
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        const swiperRecommendation = new Swiper(".swiper__recommendation", {
+          // Optional parameters
+          direction: "horizontal",
+          loop: false,
+          speed: parseInt('{{ section.settings.slider_speed }}'),
+          slidesPerView: 4,
+          loadOnTransitionStart: true,
+          autoHeight: true,
+
+          breakpoints: {
+            // when window width is >= 320px
+            320: {
+              slidesPerView: 1,
+            },
+            // when window width is >= 768px
+            768: {
+              slidesPerView: 2,
+            },
+            // when window width is >= 992px
+            992: {
+              slidesPerView: 3,
+            },
+            // when window width is >= 1200px
+            1200: {
+              slidesPerView: 4,
+            }
+          },
+
+          keyboard: {
+            enabled: true,
+          },
+
+          mousewheel: {
+            invert: false,
+          },
+
+
+          // Navigation arrows
+          navigation: {
+              nextEl: ".swiper-button-next__recommendation",
+              prevEl: ".swiper-button-prev__recommendation",
+          },
+
+        });
+      }, 2000)
+    })
+  </script>
+  {% endif %}
+
+</section>
+
+
+{% javascript %}
+  (async () => {
+  // Define an async function to handle the intersection of the observed element
+  const handleIntersection = async (entries, observer) => {
+
+    // Unobserve the section to prevent further intersection checks
+    await observer.unobserve(productRecommendationsSection);
+
+    // Get the URL from the data attribute of the product recommendations section
+    const url = productRecommendationsSection.dataset.url;
+
+    // Fetch the content from the provided URL
+    await fetch(url)
+      .then(response => response.text())
+      .then(text => {
+        // Create a temporary HTML element to hold the fetched content
+        const html = document.createElement('div');
+        html.innerHTML = text;
+
+        // Find the element with class 'product-recommendations' in the fetched content
+        const recommendations = html.querySelector('.product-recommendations');
+
+        // If recommendations are found and the inner HTML is not empty, update the product recommendations section
+        if (recommendations && recommendations.innerHTML.trim().length) {
+          productRecommendationsSection.innerHTML = recommendations.innerHTML;
+        }
+      })
+      .catch(e => {
+        console.error(e);
+      });
+  };
+
+  // Get a reference to the product recommendations section
+  const productRecommendationsSection = document.querySelector('.product-recommendations');
+
+  // Create an IntersectionObserver instance with a callback function and root margin
+  const observer = await new IntersectionObserver(handleIntersection, {rootMargin: '0px 0px 200px 0px'});
+
+  // Observe the product recommendations section for intersection
+  await observer.observe(productRecommendationsSection);
+})();
+
+{% endjavascript %}
+
+{% schema %}
+  {
+    "name": "Product recommendations",
+    "settings": [
+            {
+              "id": "section_label",
+              "default": "Recommend products",
+              "type": "text",
+              "label": "Label text"
+            },
+            {
+              "type": "header",
+              "content": "Card settings"
+            },
+            {
+              "id": "show_second_image",
+              "default": true,
+              "type": "checkbox",
+              "label": "Show secondary image while hover."
+            },
+            {
+              "id": "show_card_rating",
+              "default": true,
+              "type": "checkbox",
+              "label": "Show rating in card."
+            },
+            {
+              "type": "header",
+              "content": "Slider settings"
+            },
+            {
+              "id": "max_products_range",
+              "default": 10,
+              "type": "range",
+              "min": 5,
+              "max": 20,
+              "step": 1,
+              "label": "Max product range.",
+              "info": "Choice max product in slider. P.s. Don`t worry if slider broken when you change range; you just need to save and wait until the page reloads."
+            },
+            {
+              "id": "transition_timing_function",
+              "type": "select",
+              "label": "Transition animation.",
+              "options": [
+                {
+                  "value": "linear",
+                  "label": "Linear"
+                },
+                {
+                  "value": "ease",
+                  "label": "Ease"
+                },
+                {
+                  "value": "ease-in",
+                  "label": "Ease-in"
+                },
+                {
+                  "value": "cubic-bezier(.47,0,.74,.71)",
+                  "label": "Ease-in (sine)"
+                },
+                {
+                  "value": "cubic-bezier(.55,.09,.68,.53)",
+                  "label": "Ease-in (quadratic)"
+                },
+                {
+                  "value": "cubic-bezier(.55,.06,.68,.19)",
+                  "label": "Ease-in (cubic)"
+                },
+                {
+                  "value": "cubic-bezier(.9,.03,.69,.22)",
+                  "label": "Ease-in (quartic)"
+                },
+                {
+                  "value": "cubic-bezier(.76,.05,.86,.06)",
+                  "label": "Ease-in (quintic)"
+                },
+                {
+                  "value": "cubic-bezier(.95,.05,.8,.04)",
+                  "label": "Ease-in (exponential)"
+                },
+                {
+                  "value": "cubic-bezier(.6,.04,.98,.34)",
+                  "label": "Ease-in (circular)"
+                },
+                {
+                  "value": "cubic-bezier(.6,-0.28,.74,.05)",
+                  "label": "Ease-in (backward)"
+                },
+                {
+                  "value": "ease-out",
+                  "label": "Ease-out"
+                },
+                {
+                  "value": "cubic-bezier(.39,.58,.57,1)",
+                  "label": "Ease-out (sine)"
+                },
+                {
+                  "value": "cubic-bezier(.25,.46,.45,.94)",
+                  "label": "Ease-out (quadratic)"
+                },
+                {
+                  "value": "cubic-bezier(.22,.61,.36,1)",
+                  "label": "Ease-out (cubic)"
+                },
+                {
+                  "value": "cubic-bezier(.17,.84,.44,1)",
+                  "label": "Ease-out (quartic)"
+                },
+                {
+                  "value": "cubic-bezier(.23,1,.32,1)",
+                  "label": "Ease-out (quintic)"
+                },
+                {
+                  "value": "cubic-bezier(.19,1,.22,1)",
+                  "label": "Ease-out (exponential)"
+                },
+                {
+                  "value": "cubic-bezier(.08,.82,.17,1)",
+                  "label": "Ease-out (circular)"
+                },
+                {
+                  "value": "cubic-bezier(.18,.89,.32,1.28)",
+                  "label": "Ease-out (backward)"
+                },
+                {
+                  "value": "ease-in-out",
+                  "label": "Ease-in-out"
+                },
+                {
+                  "value": "cubic-bezier(.45,.05,.55,.95)",
+                  "label": "Ease-in-out (sine)"
+                },
+                {
+                  "value": "cubic-bezier(0.46, 0.03, 0.52, 0.96)",
+                  "label": "Ease-in-out (quadratic)"
+                },
+                {
+                  "value": "cubic-bezier(.65,.05,.36,1)",
+                  "label": "Ease-in-out (cubic)"
+                },
+                {
+                  "value": "cubic-bezier(.77,0,.18,1)",
+                  "label": "Ease-in-out (quartic)"
+                },
+                {
+                  "value": "cubic-bezier(0.86, 0, 0.07, 1)",
+                  "label": "Ease-in-out (quintic)"
+                },
+                {
+                  "value": "cubic-bezier(1, 0, 0, 1)",
+                  "label": "Ease-in-out (exponential)"
+                },
+                {
+                  "value": "cubic-bezier(0.79, 0.14, 0.15, 0.86)",
+                  "label": "Ease-in-out (circular)"
+                },
+                {
+                  "value": "cubic-bezier(.68,-0.55,.27,1.55)",
+                  "label": "Ease-in-out (backward)"
+                }
+              ],
+              "default": "linear",
+              "info": "You can choose transition animation to make your slider feel better."
+            },
+            {
+              "id": "slider_speed",
+              "default": 600,
+              "type": "range",
+              "min": 100,
+              "max": 2000,
+              "step": 50,
+              "unit": "ms",
+              "label": "Slider speed.",
+              "info": "Change transition duration. I recommend 600ms."
+            },
+            {
+              "id": "slider_autoplay",
+              "default": false,
+              "type": "checkbox",
+              "label": "Enable slider autoplay"
+            },
+            {
+              "id": "slider_autoplay_delay",
+              "default": 5000,
+              "type": "range",
+              "min": 500,
+              "max": 9500,
+              "step": 500,
+              "unit": "ms",
+              "label": "Slider autoplay delay",
+              "info": "Works only when autoplay enabled."
+          }
+        ]
+  }
+{% endschema %}
